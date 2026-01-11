@@ -1,0 +1,124 @@
+= TP Révisions PHP : POO & Algorithmique
+:author: Timothée Robert
+:revdate: 2026-01-12
+:toc: left
+:toc-title: Sommaire
+:icons: font
+:source-highlighter: highlight.js
+:sectnums:
+
+== Contexte & Objectifs
+
+Ce TP a pour but de consolider vos acquis en **PHP 8** orienté objet. Nous travaillerons sur un modèle de gestion scolaire (Étudiants, Notes, Planning) respectant une architecture stricte (Namespaces, Encapsulation).
+
+*Objectifs pédagogiques :*
+
+* Manipuler des collections d'objets (`array` de classes).
+* Utiliser l'encapsulation (Getters).
+* Naviguer dans les associations (Ex: `Etudiant` -> `Filiere`).
+* Implémenter des algorithmes de base (Somme, Moyenne, Recherche de maximum).
+
+[IMPORTANT]
+====
+Le respect de l'encapsulation est obligatoire. L'accès direct aux attributs (ex: `$e->nom`) est interdit. Vous devez utiliser les accesseurs (ex: `$e->getNom()`).
+====
+
+== Préparation des Données
+
+Avant de commencer les exercices, assurez-vous que votre fichier `index.php` (ou votre script de test) contient bien les instances nécessaires.
+
+En plus du tableau `$etudiants` déjà créé, ajoutez les tableaux suivants pour les exercices 4 et 5 :
+
+[source,php]
+----
+// À ajouter dans votre fichier index.php
+
+// Instanciation de salles
+$salles = [
+    new Salle(1, "B202", 2, 30, 15),
+    new Salle(2, "A101", 1, 20, 20),
+    new Salle(3, "C004", 0, 40, 0)
+];
+
+// Instanciation de planning
+// (Supposons que les objets Matiere, Enseignant, Salle existent déjà)
+$plannings = [
+    new Planning(1, "S42", "Lundi", 4, $matCyber, $profTuring, $salles[0]),
+    new Planning(2, "S42", "Mardi", 2, $matWeb, $profTuring, $salles[1]),
+    new Planning(3, "S43", "Jeudi", 3, $matCyber, $profLovelace, $salles[0])
+];
+----
+
+
+
+== Exercice 1 : Filtrage simple
+*Objectif : Conditions et navigation dans les objets liés.*
+
+Parcourez le tableau `$etudiants`. Affichez le **Nom** et le **Prénom** uniquement des étudiants qui sont inscrits dans l'option **"SLAM"**.
+
+* Si l'option n'est pas "SLAM", l'étudiant ne doit pas apparaître.
+* Format attendu : `Dupont Marie (SLAM)`
+
+[TIP]
+====
+Vous devrez enchaîner les appels de méthodes pour atteindre l'information :
+`$etudiant->getFiliere()->getOption()`
+====
+
+== Exercice 2 : Calcul de Moyenne Pondérée
+*Objectif : Algorithme de cumul et gestion des cas limites.*
+
+Pour chaque étudiant, calculez sa moyenne générale en tenant compte des coefficients des évaluations.
+
+. **Formule** : stem:[(sum ("Note" xx "Coef")) / (sum "Coefs")]
+. **Règle de gestion** : Si un étudiant n'a aucune note, affichez "Pas de notation" (ne pas diviser par zéro).
+. **Affichage** : `Prénom Nom : Moyenne / 20` (arrondir à 2 décimales).
+
+[source,php]
+----
+// Structure d'aide
+$totalPoints = 0;
+$totalCoefs = 0;
+foreach ($etudiant->getEvaluations() as $eval) {
+    // Votre logique de cumul ici
+}
+----
+
+== Exercice 3 : Recherche Multicritère
+*Objectif : Exploration d'objets imbriqués.*
+
+Nous souhaitons auditer le travail de l'enseignant **M. Turing**.
+Parcourez tous les étudiants et toutes leurs évaluations respectives.
+
+Affichez toutes les notes qui ont été attribuées par l'enseignant dont le nom est "Turing".
+
+* **Format de sortie :**
+> "Note de 15/20 donnée par M. Turing à l'étudiant Dupont en Développement Web."
+
+[NOTE]
+====
+Cela nécessite deux boucles imbriquées (`foreach` étudiant -> `foreach` évaluation) et un test sur le nom de l'enseignant lié à l'évaluation.
+====
+
+== Exercice 4 : Gestion de Planning (Charge horaire)
+*Objectif : Somme conditionnelle sur collection simple.*
+
+On souhaite connaître la charge horaire globale de la semaine **"S42"**.
+
+Parcourez votre tableau `$plannings`. Calculez et affichez le nombre total d'heures de cours prévues pour la semaine "S42".
+
+* Utilisez `$planning->getSemaine()` pour filtrer.
+* Utilisez `$planning->getDuree()` pour cumuler.
+
+== Exercice 5 : Inventaire & Statistiques
+*Objectif : Algorithme de recherche de maximum.*
+
+L'administration souhaite un état des lieux des salles (tableau `$salles`).
+
+. **Total PC** : Calculez le nombre total de postes informatiques disponibles dans tout l'établissement.
+. **Capacité Max** : Identifiez (via un algorithme) et affichez le *Code* de la salle qui possède la plus grande capacité d'accueil d'élèves.
+
+[TIP]
+====
+Pour la recherche du maximum, initialisez une variable `$maxCapacite = 0` et une variable `$salleGagnante = null` avant la boucle. Mettez-les à jour dès que vous trouvez une capacité supérieure à la précédente.
+====

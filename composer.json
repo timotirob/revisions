@@ -1,0 +1,18 @@
+{
+  "name": "bts-sio/gestion-notes",
+  "description": "TP Révisions PHP - Gestion des notes",
+  "autoload": {
+    "psr-4": {
+      "Ecole\\": "src/"
+    }
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^10.0"
+  },
+  "authors": [
+    {
+      "name": "Professeur SIO",
+      "email": "prof@ecole.fr"
+    }
+  ]
+}
