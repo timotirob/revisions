@@ -122,3 +122,94 @@ L'administration souhaite un état des lieux des salles (tableau `$salles`).
 ====
 Pour la recherche du maximum, initialisez une variable `$maxCapacite = 0` et une variable `$salleGagnante = null` avant la boucle. Mettez-les à jour dès que vous trouvez une capacité supérieure à la précédente.
 ====
+
+== Exercice 6 : Gestion des Dates (Mineurs vs Majeurs)
+*Objectif : Manipulation de l'objet `DateTime` et intervalles.*
+
+L'administration doit identifier les étudiants mineurs pour demander des autorisations parentales.
+La date de référence pour le calcul est la date actuelle (`new DateTime("now")`).
+
+. Parcourez la liste des étudiants.
+. Calculez l'âge de chacun en utilisant la méthode `diff()` entre la date du jour et la date de naissance.
+. Affichez :
+* Si l'étudiant a moins de 18 ans : `[ALERTE] Prénom Nom est mineur (X ans).`
+* Sinon : `Prénom Nom est majeur.`
+
+[TIP]
+====
+La méthode `diff()` retourne un objet `DateInterval`. La propriété `y` de cet objet contient le nombre d'années.
+Exemple : `$age = $dateNaissance->diff($dateActuelle)->y;`
+====
+
+== Exercice 7 : Logique Métier (Validation du Bloc 1)
+*Objectif : Filtrage avancé sur des sous-ensembles de données.*
+
+Pour obtenir le diplôme, il faut avoir la moyenne (>= 10) spécifiquement dans les matières du **"Bloc 1"**.
+
+. Pour chaque étudiant, isolez uniquement les notes concernant des matières dont le code bloc est "Bloc 1".
+. Calculez la moyenne de ces notes spécifiques.
+. Affichez si l'étudiant a validé ou non le Bloc 1.
+
+*Sortie attendue :*
+> "Marie Dupont : Bloc 1 VALIDÉ (15/20)" +
+> "Lucas Martin : Bloc 1 NON VALIDÉ (8.5/20)"
+
+[NOTE]
+====
+Vous devez vérifier `$eval->getMatiere()->getCodeBloc() === "Bloc 1"` à l'intérieur de la boucle des évaluations.
+====
+
+== Exercice 8 : Agrégation de Données (Charge Enseignant)
+*Objectif : Utilisation de tableaux associatifs comme accumulateurs.*
+
+On souhaite savoir combien d'heures de cours assure chaque enseignant sur la semaine S42, en se basant sur le tableau `$plannings`.
+
+. Créez un tableau vide `$heuresParProf = []`.
+. Parcourez les plannings de la semaine **S42**.
+. Pour chaque créneau, utilisez le nom de l'enseignant comme **clé** du tableau associatif et ajoutez la durée à la valeur.
+. À la fin, affichez le résultat.
+
+*Algorithme suggéré :*
+[source,php]
+----
+$nomProf = $planning->getEnseignant()->getNom();
+if (!isset($heuresParProf[$nomProf])) {
+    $heuresParProf[$nomProf] = 0;
+}
+$heuresParProf[$nomProf] += $planning->getDuree();
+----
+
+== Exercice 9 : Manipulation de Chaînes (Génération d'emails)
+*Objectif : Nettoyage de chaînes et concaténation.*
+
+Le service informatique doit créer les comptes Active Directory. Le format de l'email doit être : `prenom.nom@ecole-sio.fr`.
+
+. Parcourez les étudiants.
+. Générez l'adresse email en respectant les contraintes suivantes :
+* Tout en minuscules (`strtolower`).
+* Pas d'espaces (remplacer par rien ou des tirets).
+. Affichez : `Nom complet -> email généré`.
+
+*Exemple :*
+> Marie Dupont -> marie.dupont@ecole-sio.fr
+
+== Exercice 10 : Génération de Vue (Composant HTML)
+*Objectif : Créer une liste déroulante dynamique.*
+
+Pour un formulaire d'affectation de salle, on a besoin d'une liste déroulante HTML (`<select>`) contenant tous les enseignants disponibles.
+
+. Parcourez le tableau (ou la liste) des enseignants (vous pouvez le déduire des objets `$plannings` si vous n'avez pas de liste distincte, ou utiliser une liste `$enseignants` créée manuellement).
+. Générez le code HTML suivant :
+
+[source,html]
+----
+<select name="enseignant">
+    <option value="1">Turing Alan</option>
+    <option value="2">Lovelace Ada</option>
+</select>
+----
+
+*Contraintes :*
+
+* La `value` de l'option doit être l'**ID** de l'enseignant.
+* Le texte affiché doit être le **Nom** suivi du **Prénom**.
