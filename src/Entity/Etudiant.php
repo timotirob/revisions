@@ -30,6 +30,19 @@ class Etudiant {
         return $this->evaluations;
     }
 
+    public function calculVraieMoyenne(): float {
+        $totalPoints = 0;
+        $totalCoefs = 0;
+        foreach ($this->getEvaluations() as $eval) {
+            // Votre logique de cumul ici
+            $totalPoints = $totalPoints + $eval->getCoefficient() * $eval->getNote() ;
+            $totalCoefs = $totalCoefs + $eval->getCoefficient();
+        }
+        if ($totalCoefs > 0)
+        return $totalPoints / $totalCoefs;
+        else return -1 ;
+    }
+
     // --- Getters Simples ---
 
     public function getId(): int { return $this->id; }
