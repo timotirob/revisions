@@ -30,18 +30,36 @@ class Etudiant {
         return $this->evaluations;
     }
 
-    public function calculVraieMoyenne(): float {
+    public function calculVraieMoyenne($matiere=""): float {
         $totalPoints = 0;
         $totalCoefs = 0;
         foreach ($this->getEvaluations() as $eval) {
             // Votre logique de cumul ici
-            $totalPoints = $totalPoints + $eval->getCoefficient() * $eval->getNote() ;
-            $totalCoefs = $totalCoefs + $eval->getCoefficient();
+            if ($matiere == $eval->getMatiere()->getCodeBloc() || $matiere=="") {
+                $totalPoints = $totalPoints + $eval->getCoefficient() * $eval->getNote();
+                $totalCoefs = $totalCoefs + $eval->getCoefficient();
+            }
         }
         if ($totalCoefs > 0)
-        return $totalPoints / $totalCoefs;
+            return $totalPoints / $totalCoefs;
         else return -1 ;
     }
+
+    /*public function calculVraieMoyenneParMatiere($matiere): float {
+        $totalPoints = 0;
+        $totalCoefs = 0;
+        foreach ($this->getEvaluations() as $eval) {
+            // Votre logique de cumul ici
+            if ($matiere == $eval->getMatiere()->getCodeBloc()) {
+                $totalPoints = $totalPoints + $eval->getCoefficient() * $eval->getNote();
+                $totalCoefs = $totalCoefs + $eval->getCoefficient();
+            }
+        }
+        if ($totalCoefs > 0)
+            return $totalPoints / $totalCoefs;
+        else return -1 ;
+    }*/
+
 
     // --- Getters Simples ---
 
