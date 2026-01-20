@@ -1,0 +1,83 @@
+= Révisions SQL
+:author: Amadou Djalo & Amirouche Mamri
+:revdate: 2026-01-20
+:toc: left
+:toc-title: Sommaire
+:icons: font
+:source-highlighter: highlight.js
+:sectnums:
+
+== SQL Simple
+On fait les exercices du site: https://www.w3resource.com/sql-exercises/soccer-database-exercise/basic-exercises-on-soccer-database.php
+
+=== Numéro 4
+From the following table, write a SQL query to find the number of matches that ended with a result
+
+D'après mon prof, d'abord:
+
+. Une table ou plusieurs pour répondre à la demande ?
+Ici une seule table car on est dans la partie BASIC Queries et d'après l'énoncé
+
+. Est ce un requête avec agrégat ou pas ?
+Oui car on demande un comptage
+
+. Est ce un COUNT() ou une autre statistique (SUM, MIN, MAX ...) ?
+Count simple (lignes) car on demande le nombre de matches
+
+. Y a t'il un filtre ?
+Oui car on demande les matches qui se terminent avec un résultat donc NON NUL
+
+SELECT COUNT(*)
+FROM match_mast
+WHERE results <> 'DRAW'
+
+== Numéro 8
+From the following table, write a SQL query to count the number of matches ended with a results in-group stage.
+
+SELECT COUNT(*) as nbMatches
+FROM match_mast
+WHERE results <> 'DRAW' and play_stage = 'G'
+
+Idem exo 4 avec un filtre de plus
+
+== Numero 26
+From the following table, write a SQL query to count the number of penalty shots taken by each team. Return country name, number of shots as "Number of Shots"
+
+SELECT s.country_name, COUNT(*) as "Number of Shots"
+FROM penalty_shootout as p
+INNER JOIN soccer_country as s
+ON p.team_id = s.country_id
+GROUP BY s.country_name
+order by "Number of Shots" DESC
+
+D'abord on constate que l'on a besoin d'une jointure car le nom du pays n'est pas dans la table où il y a les pénaltys. La clef n'a pas le même nom: dans soccer_country, country_id est clef primaire. Dans penalty_shootout elle est clef étrangère sous le nom de team_id.
+On veut un regroupement par pays d'où le GROUP BY
+On trie juste pour avoir "visuellement" le même rendu que la restitution en exemple
+
+== Synthèse Méthodologique
+Pour réussir chaque requête SQL simple, il faut systématiquement valider ces 4 étapes :
+
+. *L'origine des données (FROM)*
+* [ ] Une seule table ? -> `FROM table`
+* [ ] Plusieurs tables ? -> Prévoir des `JOIN` (Notion suivante)
+
+. *Le type de résultat attendu (SELECT)*
+* [ ] Détail des lignes ? -> Sélectionner les colonnes (`col1, col2`)
+* [ ] Une statistique ? -> Utiliser une fonction d'agrégat (`COUNT`, `SUM`, `AVG`, etc.)
+
+. *La spécificité de la fonction (Si agrégat)*
+* [ ] Compter des occurrences ? -> `COUNT(*)` ou `COUNT(colonne)`
+* [ ] Éliminer les doublons ? -> Ajouter `DISTINCT`
+
+. *Le filtrage (WHERE)*
+* [ ] Y a-t-il une condition ? -> Clause `WHERE`
+* [ ] Attention aux valeurs nulles -> Utiliser `IS NOT NULL` (et non `= NULL`)
+* [ ] Attention aux chaînes de caractères -> Toujours entre simples quotes `' '`
+
+[TIP]
+====
+Relis toujours l'énoncé pour repérer les mots-clés :
+"Nombre de..." -> `COUNT`
+"Liste des..." -> Pas d'agrégat
+"Total de..." -> `SUM`
+====
