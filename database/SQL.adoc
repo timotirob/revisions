@@ -81,3 +81,77 @@ Relis toujours l'énoncé pour repérer les mots-clés :
 "Liste des..." -> Pas d'agrégat
 "Total de..." -> `SUM`
 ====
+
+== SQL Jointures
+
+=== Introduction
+Revoir les 2 fiches de méthode sur les jointures de Mr Robert.
+
+Exercices par Mr Coco et Tandia sur les bases cinéma et foot de w3school
+
+=== Exercice 5 - UNION
+L'énoncé est: From the following tables, write a SQL query to find the name of all reviewers and movies together in a single list.
+
+Ici il faut IDENTIFIER qu'on a besoin d'un UNION et non pas d'une jointure.
+Cf 1ère année UNION pour injections.
+Cf également étude de cas avec des UNION d'il y a 2 ans.
+L'UNION permet de concaténer le résultat de plusieurs requêtes SELECT à condition que le nombre et le type des colonnes soit identique.
+
+[source,sql]
+----
+SELECT mov_title
+FROM movie
+UNION
+SELECT rev_name
+FROM reviewer
+----
+
+=== Exercice 6 : Jointure et filtre
+
+From the following table, write a SQL query to find all reviewers who have rated seven or more stars to their rating. Return reviewer name
+
+D' abord on identifie les colonnes à mettre dans le SELECT.
+Ensuite les jointures nécessaires (pour le SELECT ou ... le filtre)
+
+
+[source,sql]
+----
+select distinct re.rev_name
+from reviewer re
+inner join rating ra
+on re.rev_id = ra.rev_id
+where ra.rev_stars >= 7
+----
+
+Ici la jointure sur la table rating sert uniquement au filtre
+
+
+==== Exercice 1 sur soccer
+From the following table, write a SQL query to find out where the final match of the EURO cup 2016 was played. Return venue name, city.
+
+Pour celui ci, on a fait pas à pas (donc pas tout à fait comme la méthodo mais plus détaillé)
+
+.Etape1
+Récupération des noms des stades
+
+.Etape 2
+Récupération des noms des villes associés
+
+.Etape 3
+Récupération des matches pour filtrer sur la phase finale
+Ici on est dans la pratique: on a cherché la "bonne colonne". En étude de cas il faudra se baser sur le modèle relationnel
+
+[source,sql]
+----
+select sv.venue_name, sc.city
+from soccer_venue as sv
+inner join soccer_city as sc
+on sv.city_id = sc.city_id
+inner join match_mast as mm
+on sv.venue_id = mm.venue_id
+where mm.play_stage = 'F'
+----
+
+Méthodo pour EDC:
+Cas où il n'y a pas de statistiques: on s'occupe du SELECT puis des tables et éventuellement jointures et enfin des filtres
+
