@@ -155,3 +155,47 @@ where mm.play_stage = 'F'
 Méthodo pour EDC:
 Cas où il n'y a pas de statistiques: on s'occupe du SELECT puis des tables et éventuellement jointures et enfin des filtres
 
+== Mini étude de cas
+Exercice 4 TP SQL
+
+[source,sql]
+----
+-- La liste des évaluations (Nom de l'étudiant, Libellé de la matière, Note et Type d'évaluation) pour toutes les notes qui ont été attribuées par l'enseignant avec pour nom "Turing".
+
+SELECT et.nom, m.libelle_cours, ev.note, ev.type_eval
+FROM evaluation ev
+INNER JOIN etudiant et ON ev.fk_id_etudiant = et.id_etudiant
+INNER JOIN enseignant es ON ev.fk_id_enseignant = es.id_enseignant
+INNER JOIN matiere m ON ev.fk_id_matiere = m.id_matiere
+WHERE es.nom = 'Turing'
+----
+
+Exercice 5 Coco: jointure avec agrégat et table association
+
+[source,sql]
+----
+SELECT COUNT(DISTINCT m.id_matiere) AS nb_matiere
+FROM matiere m
+inner JOIN enseigner e
+ON m.id_matiere = e.fk_id_matiere
+INNER JOIN enseignant en
+ON en.id_enseignant = e.fk_id_enseignant
+WHERE en.nom = 'Lovelace'
+----
+
+Exercice 6 Standia: 4 tables avec 3 jointures
+
+[source,sql]
+----
+SELECT m.libelle_cours, p.semaine, e.nom
+FROM planning AS p
+INNER JOIN matiere AS m
+ON p.fk_id_matiere = m.id_matiere
+INNER JOIN enseignant AS e
+ON e.id_enseignant = p.fk_id_enseignant
+INNER JOIN salle AS s
+ON s.id_salle = p.fk_id_salle
+WHERE p.semaine = 'S42'
+----
+
+
