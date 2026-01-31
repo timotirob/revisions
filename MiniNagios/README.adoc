@@ -1,0 +1,555 @@
+= TP : Infrastructure & API avec Node.js (Mini-Nagios)
+:author: Timothée Robert & Les IA
+:revdate: 2026-02-01
+:toc: left
+:toc-title: Sommaire
+:icons: font
+:source-highlighter: highlightjs
+:sectnums:
+
+== Introduction : Du PHP à Node.js
+
+Jusqu'à présent, nous avons codé en PHP (modèle synchrone, orienté "page web").
+Aujourd'hui, nous basculons sur **Node.js** (JavaScript côté serveur).
+
+Pourquoi ce changement pour un profil DevOps/SISR ?
+
+* **Coco**: demande de révision autour de JS
+* **API First :** Node.js est roi pour créer des API JSON rapides.
+* **Asynchrone :** Il gère très bien de nombreuses connexions simultanées (monitoring).
+* **Isomorphisme :** Le même langage (JS) pour le script serveur, le script client et les outils de build.
+
+=== Prérequis Techniques
+
+.   Ouvrez un terminal.
+.   Vérifiez que Node est installé : `node -v` (Doit être > 18).
+.   Créez un dossier `MiniNagiosJS`.
+.   Initialisez le projet :
+
+[source,bash]
+----
+mkdir MiniNagiosJS
+cd MiniNagiosJS
+npm init -y
+----
+
+[IMPORTANT]
+.Configuration ES Modules
+====
+Par défaut, Node.js utilise l'ancien système d'import (`require`). Nous voulons le moderne (`import/export`).
+Ouvrez `package.json` et ajoutez la ligne : `"type": "module",` juste après "name".
+====
+
+---
+
+== SÉANCE 1 : POO Moderne, Héritage & Composition
+
+=== La POO en JavaScript (ES6)
+
+Oubliez les `function` à l'ancienne. Depuis 2015 (ES6), JS possède une syntaxe `class` très proche de PHP ou Java.
+
+==== Classe Mère & Composition
+*Concept clé : La Composition.*
+Au lieu de dire "Un Serveur a une IP (texte)", nous dirons "Un Serveur **a une** Carte Réseau (Objet)".
+C'est la relation **Has-A** (A un).
+
+Créez le fichier `src/CarteReseau.js` :
+[source,javascript]
+----
+export class CarteReseau {
+    constructor(ip, mac) {
+        this.ip = ip;
+        this.mac = mac;
+        this.isConnected = false;
+    }
+
+    plug() {
+        this.isConnected = true;
+    }
+
+    unplug() {
+        this.isConnected = false;
+    }
+
+    toString() {
+        return `IP: ${this.ip} (MAC: ${this.mac}) - ${this.isConnected ? '🟢' : '🔴'}`;
+    }
+}
+----
+
+Créez le fichier `src/Equipement.js` :
+[source,javascript]
+----
+// On importe la dépendance
+import { CarteReseau } from './CarteReseau.js';
+
+export class Equipement {
+    // En JS, les propriétés peuvent être déclarées ici (champs publics) ou directement dans le constructeur
+    // Le '#' devant un nom de variable le rend PRIVE (Encapsulation stricte)
+    #hostname;
+
+    constructor(hostname, ip, mac) {
+        this.#hostname = hostname;
+
+        // COMPOSITION : L'équipement instancie sa propre carte réseau
+        this.carte = new CarteReseau(ip, mac);
+
+        // Par défaut, on branche le câble
+        this.carte.plug();
+    }
+
+    getHostname() {
+        return this.#hostname;
+    }
+
+    // Méthode standard
+    afficherStatut() {
+        return `Machine : ${this.#hostname} | ${this.carte.toString()}`;
+    }
+}
+----
+
+=== Héritage et "Surcharge" (Overriding)
+
+*Question fréquente :* Y a-t-il de la surcharge en JS ?
+
+* **Redéfinition (Overriding) :** OUI. L'enfant réécrit une méthode du parent. On utilise `super.methode()` pour garder le comportement parent.
+* **Surcharge (Overloading) :** NON (pas nativement). On ne peut pas avoir `afficher(a)` et `afficher(a, b)`.
+* *Solution JS :* On utilise des paramètres par défaut ou on vérifie le type des arguments dans une seule méthode.
+
+Créez `src/Serveur.js` :
+[source,javascript]
+----
+import { Equipement } from './Equipement.js';
+
+export class Serveur extends Equipement {
+    constructor(hostname, ip, mac, os) {
+        // Appel obligatoire au constructeur parent
+        super(hostname, ip, mac);
+        this.os = os;
+    }
+
+    // REDÉFINITION (Overriding)
+    afficherStatut() {
+        // On enrichit l'affichage du parent
+        return `${super.afficherStatut()} | OS : ${this.os}`;
+    }
+}
+----
+
+== Exercices Pratiques (Partie 1)
+
+=== Exercice 1 : Le Routeur (Héritage)
+Créez la classe `src/Routeur.js`.
+
+* Elle hérite de `Equipement`.
+* Elle possède un attribut `nbPorts` (int).
+* Redéfinissez `afficherStatut()` pour inclure le nombre de ports.
+
+=== Exercice 2 : La Baie de Brassage (Composition Avancée)
+Une baie (Rack) contient plusieurs équipements.
+Créez la classe `src/Baie.js`.
+
+* Attribut : `equipements` (Un tableau vide `[]` au départ).
+* Méthode : `ajouterEquipement(eq)` qui pousse l'objet dans le tableau.
+* Méthode : `toutAllumer()` qui parcourt le tableau et appelle `plug()` sur la carte réseau de chaque machine.
+* Méthode : `listerContenu()` qui retourne un tableau de chaînes (les statuts).
+
+=== Exercice 3 : Script de test
+Créez un fichier `index.js` à la racine pour tester votre logique.
+[source,javascript]
+----
+import { Serveur } from './src/Serveur.js';
+import { Routeur } from './src/Routeur.js';
+import { Baie } from './src/Baie.js';
+
+const srv1 = new Serveur("Web-01", "192.168.1.10", "AA:BB:CC:00:11", "Debian");
+const rtr1 = new Routeur("Core-SW", "192.168.1.1", "AA:BB:CC:DD:EE", 24);
+
+console.log(srv1.afficherStatut());
+
+// Test de la baie... à vous de jouer !
+----
+Lancez avec `node index.js`.
+
+---
+
+== SÉANCE 2 : Tests Unitaires, Robustesse & API REST
+
+Nos classes fonctionnent, mais sont-elles solides ? Et comment les rendre accessibles aux autres applications ?
+
+=== Tests Unitaires avec Jest
+
+En JS, le standard de test est **Jest**.
+Installez-le (en mode développement uniquement) :
+[source,bash]
+----
+npm install --save-dev jest
+----
+
+Modifiez `package.json` pour changer la commande de test :
+[source,json]
+----
+"scripts": {
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+}
+----
+*(L'option experimental-vm-modules est nécessaire car nous utilisons "type": "module")*
+
+=== Création d'un Validator (Méthodes Statiques)
+Créez `src/Validator.js`. C'est notre boîte à outils.
+
+[source,javascript]
+----
+export class Validator {
+    /**
+     * Valide une IP (Regex simplifiée pour l'exemple)
+     * @param {string} ip
+     * @returns {boolean}
+     */
+    static isIpValid(ip) {
+        const regex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
+        return regex.test(ip);
+    }
+
+    static isMacValid(mac) {
+        // Format AA:BB:CC:DD:EE:FF
+        const regex = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/;
+        return regex.test(mac);
+    }
+}
+----
+
+=== Écriture du Test
+Créez le fichier `tests/Validator.test.js`. Jest cherche automatiquement les fichiers `.test.js`.
+
+[source,javascript]
+----
+import { Validator } from '../src/Validator.js';
+
+describe('Tests du Validator', () => {
+
+    test('Une IP correcte doit retourner true', () => {
+        expect(Validator.isIpValid('192.168.1.1')).toBe(true);
+    });
+
+    test('Une IP incorrecte (texte) doit retourner false', () => {
+        expect(Validator.isIpValid('patate')).toBe(false);
+    });
+
+    test('Une IP incorrecte (trop longue) doit retourner false', () => {
+        expect(Validator.isIpValid('999.999.999.9999')).toBe(false); // Regex simplifiée accepte 999, améliorez la regex en exercice !
+    });
+});
+----
+
+Lancez les tests : `npm test`.
+
+== Création de l'API avec Express
+
+Nous allons transformer notre script console en serveur Web.
+Installez Express : `npm install express`
+
+Créez le fichier `app.js` :
+[source,javascript]
+----
+import express from 'express';
+import { Serveur } from './src/Serveur.js';
+import { Validator } from './src/Validator.js';
+
+const app = express();
+const port = 3000;
+
+// Middleware pour comprendre le JSON envoyé par les clients
+app.use(express.json());
+
+// Notre "Base de données" en mémoire
+const parcInformatique = [];
+
+// ROUTE 1 : GET (Lecture)
+app.get('/api/equipements', (req, res) => {
+    // On transforme nos objets en un format JSON simple pour l'affichage
+    const reponse = parcInformatique.map(eq => ({
+        hostname: eq.getHostname(),
+        details: eq.afficherStatut()
+    }));
+    res.json(reponse);
+});
+
+// ROUTE 2 : POST (Création) avec Try/Catch
+app.post('/api/serveurs', (req, res) => {
+    try {
+        const { hostname, ip, mac, os } = req.body;
+
+        // Validation défensive
+        if (!Validator.isIpValid(ip)) {
+            throw new Error(`L'IP ${ip} est invalide !`);
+        }
+
+        const nouveauSrv = new Serveur(hostname, ip, mac, os);
+        parcInformatique.push(nouveauSrv);
+
+        res.status(201).json({
+            message: "Serveur créé",
+            machine: nouveauSrv.afficherStatut()
+        });
+
+    } catch (error) {
+        // En cas d'erreur, on renvoie une 400 (Bad Request)
+        res.status(400).json({ error: error.message });
+    }
+});
+
+app.listen(port, () => {
+    console.log(`API Mini-Nagios écoute sur http://localhost:${port}`);
+});
+----
+
+== Exercices Pratiques (Partie 2)
+
+=== Exercice 4 : Amélioration des Tests
+Dans `tests/Validator.test.js`, ajoutez des tests pour la méthode `isMacValid`.
+
+* Testez une MAC valide (`AA:BB:CC:DD:EE:FF`).
+* Testez une MAC invalide (`ZZ:ZZ...`).
+* Testez une chaîne vide.
+
+=== Exercice 5 : Routeur API
+Ajoutez une route POST `/api/routeurs` dans `app.js`.
+
+* Elle doit accepter un JSON `{ hostname, ip, mac, nbPorts }`.
+* Elle doit instancier un objet `Routeur`.
+* Elle doit valider que `nbPorts` est bien un nombre entre 4 et 48. Sinon -> Erreur 400.
+
+=== Exercice 6 : Recherche par ID (Paramètres de route)
+Ajoutez une route `GET /api/equipements/:index`.
+
+* Si l'utilisateur appelle `/api/equipements/0`, renvoyez le premier élément du tableau.
+* Si l'index n'existe pas, renvoyez une erreur 404 (`res.status(404).json(...)`).
+
+=== Exercice 7 : Simulation de panne (Patch)
+Ajoutez une route `PATCH /api/equipements/:index/unplug`.
+
+* Cette route doit récupérer l'équipement à l'index donné.
+* Elle doit appeler la méthode `carte.unplug()` de l'équipement.
+* Renvoyez le nouveau statut.
+
+== Annexe : Comment tester l'API ?
+
+Comme nous n'avons pas de formulaire HTML, utilisez un outil comme **Postman**, **Insomnia**, ou l'extension VS Code **Thunder Client**.
+
+Exemple de requête POST pour créer un serveur :
+
+* **Method:** POST
+* **URL:** `http://localhost:3000/api/serveurs`
+* **Header:** `Content-Type: application/json`
+* **Body (JSON):**
+```json
+{
+"hostname": "SRV-TEST",
+"ip": "192.168.0.50",
+"mac": "A1:B2:C3:D4:E5:F6",
+"os": "Ubuntu"
+}
+```
+
+== Annexe: méthode de classe & méthode d'instance - le Concept Fondamental
+
+En Programmation Orientée Objet, il existe deux manières d'utiliser des fonctions et des variables. La distinction se fait sur la question : **"À qui appartient cette fonctionnalité ?"**
+
+[cols="1,2,2", options="header"]
+|===
+| Critère | Méthode d'Instance (Standard) | Méthode de Classe (Statique)
+
+| **C'est quoi ?**
+| Une action liée à un **objet unique**. Elle a besoin des données spécifiques de l'objet (son nom, son IP, son solde...).
+| Une action liée à la **Classe** (le moule). C'est un outil ou un service global qui n'a pas besoin de données spécifiques.
+
+| **L'Analogie**
+| **La Voiture :** `accelerer()`. +
+Pour accélérer, je dois être assis dans une voiture précise. La Ferrari accélère plus vite que la Twingo.
+| **L'Usine :** `construireVoiture()`. +
+L'usine n'a pas besoin d'être "démarrée" comme une voiture. Elle offre un service de fabrication.
+
+| **Accès aux données**
+| ✅ A accès à `$this` (PHP) ou `this` (Java/JS).
+| ❌ **INTERDIT** d'utiliser `this`. La méthode ne connait aucun objet particulier.
+|===
+
+=== Représentation Visuelle
+
+[mermaid]
+....
+classDiagram
+    class CompteBancaire {
+        -solde : float
+        -titulaire : string
+        +retirerArgent(montant)
+        +afficherSolde()
+        ___
+        +static tauxInteret : float
+        +static changerTauxNational(nouveauTaux)
+    }
+
+    note for CompteBancaire "Partie Instance (Haut) :
+Spécifique à M. Dupont ou Mme Martin"
+    note for CompteBancaire "Partie Statique (Bas) :
+Commun à TOUS les comptes de la banque"
+....
+
+== Comparatif Syntaxique (La "Cheat Sheet")
+
+Voici comment déclarer et utiliser ces concepts dans les trois langages majeurs du BTS SIO.
+
+=== Déclaration dans la Classe
+
+Observez le mot-clé **`static`** qui revient partout.
+
+[tabs]
+====
+PHP::
++
+[source,php]
+----
+class Utilisateur {
+    // Variable de Classe (Partagée par tous)
+    public static $compteur = 0;
+
+    // Méthode de Classe (Utilitaire)
+    public static function getInfo() {
+        return "Système v1.0";
+    }
+
+    // Méthode d'Instance (Classique)
+    public function seConnecter() {
+        // ...
+    }
+}
+----
+
+Java::
++
+[source,java]
+----
+public class Utilisateur {
+    // Variable de Classe
+    public static int compteur = 0;
+
+    // Méthode de Classe
+    public static String getInfo() {
+        return "Système v1.0";
+    }
+
+    // Méthode d'Instance
+    public void seConnecter() {
+        // ...
+    }
+}
+----
+
+JavaScript (ES6)::
++
+[source,javascript]
+----
+class Utilisateur {
+    // Variable de Classe (Moderne : static fields)
+    static compteur = 0;
+
+    // Méthode de Classe
+    static getInfo() {
+        return "Système v1.0";
+    }
+
+    // Méthode d'Instance
+    seConnecter() {
+        // ...
+    }
+}
+----
+====
+
+=== Utilisation (Appel)
+
+C'est ici que les différences de syntaxe sont les plus marquées, notamment avec le **Paamayim Nekudotayim** (`::`) de PHP.
+
+[cols="1,3,3,3", options="header"]
+|===
+| Action | PHP | Java | JavaScript
+
+| **Appeler du Statique**
+(Depuis l'extérieur)
+| `Utilisateur::getInfo()`
+| `Utilisateur.getInfo()`
+| `Utilisateur.getInfo()`
+
+| **Appeler du Statique**
+(Depuis l'intérieur de la classe)
+| `self::getInfo()`
+| `Utilisateur.getInfo()`
+ou simplement `getInfo()`
+| `Utilisateur.getInfo()`
+ou `this.constructor.getInfo()`
+
+| **Appeler de l'Instance**
+(Depuis l'extérieur)
+| `$u = new Utilisateur();`
+`$u->seConnecter();`
+| `Utilisateur u = new Utilisateur();`
+`u.seConnecter();`
+| `const u = new Utilisateur();`
+`u.seConnecter();`
+
+| **Accès propriété Statique**
+| `Utilisateur::$compteur`
+| `Utilisateur.compteur`
+| `Utilisateur.compteur`
+|===
+
+== Quand utiliser quoi ? (Best Practices)
+
+Lors de vos projets ou examens, posez-vous ces questions pour choisir :
+
+. **Est-ce que la méthode a besoin de données stockées dans l'objet (ex: `$this->nom`) ?**
+* OUI -> C'est une **Méthode d'Instance**.
+* NON -> C'est probablement une **Méthode Statique**.
+
+. **Est-ce que c'est une fonction utilitaire (Math, Validation, Formatage) ?**
+* OUI -> **Statique**. Ex: `Validator::isEmailValid($email)`.
+
+. **Est-ce que c'est un compteur global ou une configuration partagée ?**
+* OUI -> **Attribut Statique**. Ex: `Compteur::$nombreVisiteurs`.
+
+[IMPORTANT]
+.Le Piège Classique
+====
+En PHP, n'essayez jamais d'utiliser `$this` dans une méthode statique.
+Cela provoquera une erreur fatale immédiate : _"Using $this when not in object context"_.
+====
+
+== Exercice de Synthèse (Multi-langages)
+
+**Scénario :** Créer une classe `MathHelper` qui permet de calculer le carré d'un nombre sans instancier la classe.
+
+.Version PHP
+[source,php]
+----
+class MathHelper {
+    public static function carre(float $n): float {
+        return $n * $n;
+    }
+}
+// Utilisation
+echo MathHelper::carre(5); // Affiche 25
+----
+
+.Version JavaScript
+[source,javascript]
+----
+class MathHelper {
+    static carre(n) {
+        return n * n;
+    }
+}
+// Utilisation
+console.log(MathHelper.carre(5)); // Affiche 25
+----
