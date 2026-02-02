@@ -22,23 +22,8 @@ Pourquoi ce changement pour un profil DevOps/SISR ?
 === Prérequis Techniques
 
 .   Ouvrez un terminal.
-.   Vérifiez que Node est installé : `node -v` (Doit être > 18).
-.   Créez un dossier `MiniNagiosJS`.
-.   Initialisez le projet :
+.   Initialisez le projet : git clone ou git pull si vous avez déjà le repo
 
-[source,bash]
-----
-mkdir MiniNagiosJS
-cd MiniNagiosJS
-npm init -y
-----
-
-[IMPORTANT]
-.Configuration ES Modules
-====
-Par défaut, Node.js utilise l'ancien système d'import (`require`). Nous voulons le moderne (`import/export`).
-Ouvrez `package.json` et ajoutez la ligne : `"type": "module",` juste après "name".
-====
 
 ---
 
