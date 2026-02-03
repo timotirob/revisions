@@ -1,0 +1,27 @@
+{
+  "name": "mini-nagios-js",
+  "version": "1.0.0",
+  "description": "Projet de révision POO et API en Node.js pour BTS SIO",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node app.js",
+    "console": "node index.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+  },
+  "keywords": [
+    "poo",
+    "nodejs",
+    "api",
+    "express",
+    "education"
+  ],
+  "author": "T Robert & IA",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}
