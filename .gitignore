@@ -1,6 +1,7 @@
 # --- Dépendances ---
 /vendor/
-
+/node_modules/
+MiniNagios/node_modules
 # --- IDEs & Éditeurs (Pour couvrir PhpStorm et VS Code) ---
 .idea/
 .vscode/

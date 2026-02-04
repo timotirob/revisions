@@ -1,0 +1,50 @@
+import express from 'express';
+import { Serveur } from './src/Serveur.js';
+import { Validator } from './src/Validator.js';
+
+const app = express();
+const port = 3000;
+
+// Middleware pour comprendre le JSON envoyé par les clients
+app.use(express.json());
+
+// Notre "Base de données" en mémoire
+const parcInformatique = [];
+
+// ROUTE 1 : GET (Lecture)
+app.get('/api/equipements', (req, res) => {
+    // On transforme nos objets en un format JSON simple pour l'affichage
+    const reponse = parcInformatique.map(eq => ({
+        hostname: eq.getHostname(),
+        details: eq.afficherStatut()
+    }));
+    res.json(reponse);
+});
+
+// ROUTE 2 : POST (Création) avec Try/Catch
+app.post('/api/serveurs', (req, res) => {
+    try {
+        const { hostname, ip, mac, os } = req.body;
+
+        // Validation défensive
+        if (!Validator.isIpValid(ip)) {
+            throw new Error(`L'IP ${ip} est invalide !`);
+        }
+
+        const nouveauSrv = new Serveur(hostname, ip, mac, os);
+        parcInformatique.push(nouveauSrv);
+
+        res.status(201).json({
+            message: "Serveur créé",
+            machine: nouveauSrv.afficherStatut()
+        });
+
+    } catch (error) {
+        // En cas d'erreur, on renvoie une 400 (Bad Request)
+        res.status(400).json({ error: error.message });
+    }
+});
+
+app.listen(port, () => {
+    console.log(`API Mini-Nagios écoute sur http://localhost:${port}`);
+});
