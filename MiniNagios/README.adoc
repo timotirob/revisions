@@ -338,6 +338,13 @@ Exemple de requête POST pour créer un serveur :
 }
 ```
 
+Exemple avec Curl
+```ascii
+curl -X POST http://localhost:3000/api/serveurs ^
+     -H "Content-Type: application/json" ^
+     -d "{\"hostname\": \"SRV-TEST\", \"ip\": \"192.168.0.50\", \"mac\": \"A1:B2:C3:D4:E5:F6\", \"os\": \"Ubuntu\"}"
+```
+
 == Annexe: méthode de classe & méthode d'instance - le Concept Fondamental
 
 En Programmation Orientée Objet, il existe deux manières d'utiliser des fonctions et des variables. La distinction se fait sur la question : **"À qui appartient cette fonctionnalité ?"**
