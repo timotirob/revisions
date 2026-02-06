@@ -1,6 +1,8 @@
 import express from 'express';
 import { Serveur } from './src/Serveur.js';
 import { Validator } from './src/Validator.js';
+import { Routeur } from './src/Routeur.js';
+
 
 const app = express();
 const port = 3000;
@@ -37,6 +39,47 @@ app.post('/api/serveurs', (req, res) => {
         res.status(201).json({
             message: "Serveur créé",
             machine: nouveauSrv.afficherStatut()
+        });
+
+    } catch (error) {
+        // En cas d'erreur, on renvoie une 400 (Bad Request)
+        res.status(400).json({ error: error.message });
+    }
+});
+
+app.post('/api/routeurs', (req, res) => {
+    try {
+        const { hostname, ip, mac, nbPorts } = req.body;
+
+        // Validation défensive
+        // if (!Validator.isIpValid(ip)) {
+        //    throw new Error(`L'IP ${ip} est invalide !`);
+       //  }
+
+        /*if ( nbPorts >=4 && nbPorts <=48 ) {
+
+            const nouveauRouteur = new Routeur(hostname, ip, mac, nbPorts);
+            parcInformatique.push(nouveauRouteur);
+
+            res.status(201).json({
+                message: "Routeur créé",
+                machine: nouveauRouteur.afficherStatut()
+            });
+        }
+        else {
+            res.status(400).json({ error: "Le nombre de ports doit se situer entre 4 et 48" });
+        };
+*/
+        if (!Validator.isNbPortsValid(nbPorts)) {
+                throw new Error(`Le nombre de ports  ${nbPorts} est invalide !`);
+              }
+
+        const nouveauRouteur = new Routeur(hostname, ip, mac, nbPorts);
+        parcInformatique.push(nouveauRouteur);
+
+        res.status(201).json({
+            message: "Routeur créé",
+            machine: nouveauRouteur.afficherStatut()
         });
 
     } catch (error) {
