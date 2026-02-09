@@ -545,3 +545,197 @@ class MathHelper {
 // Utilisation
 console.log(MathHelper.carre(5)); // Affiche 25
 ----
+
+== SÉANCE 3 : Architecture Complexe & Consolidation
+
+Lors de la Séance 1, nous avons modélisé des objets, puis nous avons produit et utilisé une API sécurisée en Séance 2.
+Nous allons maintenant relier le tout pour créer une véritable application de gestion de Datacenter.
+
+**Les défis du jour :**
+
+* **Évolution de la Composition :** Nous allons rendre notre classe `Baie` plus intelligente en lui ajoutant une limite physique.
+* **TDD (Test Driven Development) :** Nous allons écrire le test qui valide la capacité **avant** de modifier le code.
+* **API Imbriquée :** Gérer des équipements *dans* des baies via HTTP.
+
+== TDD : Tester les limites de la Baie
+
+Avant de toucher au code de `Baie.js`, nous allons définir son comportement attendu via un test.
+Une baie doit avoir une capacité maximale. Si on essaie d'ajouter un équipement alors qu'elle est pleine, elle doit refuser l'ajout.
+
+=== Exercice 1 : Le Test de Capacité
+Créez le fichier `tests/Baie.test.js`. Recopiez le code ci-dessous.
+Ce code définit le comportement attendu (la "Spécification").
+
+[source,javascript]
+----
+import { Baie } from '../src/Baie.js';
+import { Serveur } from '../src/Serveur.js';
+
+describe('Logique Métier : Baie de Brassage', () => {
+
+    test('On peut ajouter un équipement s\'il y a de la place', () => {
+        // On initialise une baie avec une capacité de 10
+        const rack = new Baie("TestRack", 10);
+        const srv = new Serveur("Srv1", "1.1.1.1", "AA:BB:CC:00:00:01", "Linux");
+
+        rack.ajouterEquipement(srv);
+
+        // Assertion : Le tableau doit contenir 1 élément
+        expect(rack.equipements.length).toBe(1);
+    });
+
+    test('La baie doit refuser l\'ajout si elle est pleine', () => {
+        // 1. Préparation : Une baie minuscule (Capacité 1)
+        const rack = new Baie("TinyRack", 1);
+        const srv1 = new Serveur("Srv1", "1.1.1.1", "AA:BB:CC:00:00:01", "Linux");
+        const srv2 = new Serveur("Srv2", "2.2.2.2", "AA:BB:CC:00:00:02", "Windows");
+
+        // 2. On la remplit au maximum
+        rack.ajouterEquipement(srv1);
+
+        // 3. Vérification : L'ajout du 2ème doit lancer une erreur
+        // Note : Avec Jest, pour tester une erreur, on met l'action dans une fonction anonyme () => ...
+        expect(() => {
+            rack.ajouterEquipement(srv2);
+        }).toThrow("est pleine");
+    });
+});
+----
+
+**Action :** Lancez `npm test`.
+**Résultat attendu :** Le test doit **échouer** (ROUGE), car votre classe `Baie` ne gère pas encore la capacité. C'est normal !
+
+== Évolution du Modèle : La Baie Intelligente
+
+Nous allons maintenant modifier la classe existante pour faire passer le test au VERT.
+
+=== Exercice 2 : Mise à jour de Baie.js
+Modifiez le fichier `src/Baie.js` créé en Séance 1.
+
+**Cahier des charges :**
+.   Ajouter une propriété privée pour stocker la capacité maximale.
+.   Le constructeur doit accepter un argument `capaciteMax` (avec une valeur par défaut de 42).
+.   La méthode `ajouterEquipement` doit vérifier s'il reste de la place **avant** d'ajouter.
+.   Si la baie est pleine, elle doit lever une exception : `throw new Error("Message...");`.
+
+[source,javascript]
+----
+export class Baie {
+    // TODO : Déclarer la propriété privée capacité
+
+    constructor(nom, capaciteMax = 42) {
+        this.nom = nom;
+        // TODO : Initialiser la capacité et le tableau vide
+    }
+
+    ajouterEquipement(equipement) {
+        // TODO :
+        // 1. Vérifier si la baie est pleine (utiliser estPleine())
+        // 2. Si pleine -> throw new Error(...)
+        // 3. Sinon -> ajouter au tableau
+    }
+
+    estPleine() {
+        // TODO : Retourner true si le nombre d'équipements atteint la capacité max
+        return false; // Code temporaire pour ne pas planter
+    }
+
+    // ... gardez vos méthodes toutAllumer() et listerContenu() existantes ...
+}
+----
+
+**Action :** Lancez `npm test`. Le test doit désormais **réussir** (VERT).
+
+== L'API : Gestion des Baies (Routes Imbriquées)
+
+Nous allons exposer cette logique via HTTP.
+
+=== Mise à jour du "store" (app.js)
+Dans `app.js`, nous allons changer notre mode de stockage. Au lieu d'un simple tableau d'équipements, nous allons gérer des Baies.
+
+**Consigne :** Remplacez le tableau `parcInformatique` existant par ceci :
+
+[source,javascript]
+----
+import { Baie } from './src/Baie.js';
+import { Serveur } from './src/Serveur.js';
+import { Validator } from './src/Validator.js';
+
+// Ce tableau contiendra désormais des objets de type Baie
+const dataCenter = [];
+
+// On initialise avec une baie par défaut pour faciliter les tests manuels
+dataCenter.push(new Baie("Rack-Principal", 5));
+----
+
+=== Exercice 3 : Créer une Baie (POST)
+Ajoutez la route `POST /api/baies` dans `app.js`.
+
+**Spécifications :**
+
+* **URL :** `/api/baies`
+* **Body JSON attendu :** `{ "nom": "Rack A", "capacite": 10 }`
+* **Comportement :** Créer une instance de `Baie` et l'ajouter au tableau `dataCenter`.
+* **Contrainte :** Le nom est obligatoire.
+* **Réponse Succès :** HTTP 201 avec l'ID de la baie.
+
+[source,javascript]
+----
+app.post('/api/baies', (req, res) => {
+    // À VOUS DE JOUER
+    // 1. Récupérer nom et capacité du body
+    // 2. Vérifier les données
+    // 3. Instancier la Baie
+    // 4. Ajouter au dataCenter
+    // 5. Renvoyer la réponse JSON
+});
+----
+
+=== Exercice 4 : Remplir une Baie (POST imbriqué)
+Nous voulons ajouter un serveur **DANS** une baie spécifique.
+C'est ici que tout se connecte : API + Validation + Logique Métier (Capacité).
+
+**Spécifications :**
+
+* **URL :** `/api/baies/:index/serveurs`
+* **Body JSON attendu :** `{ "hostname": "...", "ip": "...", ... }`
+* **Comportement :**
+1.  Trouver la baie grâce à l'`:index`. Si introuvable -> 404.
+2.  Valider les données du serveur (IP, etc.) via le `Validator`.
+3.  Créer l'objet `Serveur`.
+4.  L'ajouter à la baie trouvée.
+5.  **Gérer l'erreur "Baie Pleine" :** Si `ajouterEquipement` lance une erreur, renvoyer un code 400.
+
+[source,javascript]
+----
+app.post('/api/baies/:index/serveurs', (req, res) => {
+    try {
+        // TODO : Implémenter la logique complète
+        // Astuce : req.params.index pour trouver la baie
+
+    } catch (e) {
+        // TODO : Gérer les erreurs (400 Bad Request)
+        res.status(400).json({ error: e.message });
+    }
+});
+----
+
+=== Exercice 5 : Voir le contenu (GET imbriqué)
+Créez la route `GET /api/baies/:index`.
+
+**Spécifications :**
+
+* Elle doit retourner un JSON contenant :
+* Le nom de la baie.
+* La capacité maximale.
+* Le nombre d'équipements installés.
+* La liste détaillée des équipements (utilisez `afficherStatut()`).
+* **Code HTTP attendu :** 200 (OK) ou 404 (Not Found).
+
+== Bilan du Module
+
+En 3 séances, nous avons construit une application complète :
+
+.   **Modèle :** Classes `Serveur`, `Baie` avec Héritage et Composition.
+.   **Logique :** Tests unitaires avec `Jest` et validation TDD.
+.   **API :** Serveur `Express` robuste gérant les erreurs et les contraintes métier.
