@@ -23,6 +23,26 @@ app.get('/api/equipements', (req, res) => {
     res.json(reponse);
 });
 
+app.get('/api/equipements/:index', (req, res) => {
+    // On transforme nos objets en un format JSON simple pour l'affichage
+    const indexequipement = parseInt(req.params.index);
+    const equipement = parcInformatique[indexequipement]
+
+    if (!equipement) {
+
+        res.status(404).json({ error: "L'équipement demandé n'existe pas" });
+    }
+
+    const indexaffichage = indexequipement+1
+    const resultat ={
+        id: indexaffichage,
+        type: equipement.constructor.name,
+        hostname: equipement.getHostname(),
+        details: equipement.afficherStatut()
+    }
+    res.json(resultat);
+});
+
 // ROUTE 2 : POST (Création) avec Try/Catch
 app.post('/api/serveurs', (req, res) => {
     try {
