@@ -43,6 +43,48 @@ app.get('/api/equipements/:index', (req, res) => {
     res.json(resultat);
 });
 
+app.patch('/api/equipements/:index/unplug', (req, res) => {
+    // On transforme nos objets en un format JSON simple pour l'affichage
+    const indexequipement = parseInt(req.params.index);
+    const equipement = parcInformatique[indexequipement]
+
+    if (!equipement) {
+
+        res.status(404).json({ error: "L'équipement demandé n'existe pas" });
+    }
+    equipement.carte.unplug()
+    const indexaffichage = indexequipement+1
+    const resultat ={
+        id: indexaffichage,
+        type: equipement.constructor.name,
+        hostname: equipement.getHostname(),
+        details: equipement.afficherStatut(),
+        message: 'equipement éteint'
+    }
+    res.json(resultat);
+});
+
+app.patch('/api/equipements/:index/plug', (req, res) => {
+    // On transforme nos objets en un format JSON simple pour l'affichage
+    const indexequipement = parseInt(req.params.index);
+    const equipement = parcInformatique[indexequipement]
+
+    if (!equipement) {
+
+        res.status(404).json({ error: "L'équipement demandé n'existe pas" });
+    }
+    equipement.carte.plug()
+    const indexaffichage = indexequipement+1
+    const resultat ={
+        id: indexaffichage,
+        type: equipement.constructor.name,
+        hostname: equipement.getHostname(),
+        details: equipement.afficherStatut(),
+        message: 'equipement allumé'
+    }
+    res.json(resultat);
+});
+
 // ROUTE 2 : POST (Création) avec Try/Catch
 app.post('/api/serveurs', (req, res) => {
     try {
