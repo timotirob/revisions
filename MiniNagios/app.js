@@ -2,7 +2,7 @@ import express from 'express';
 import { Serveur } from './src/Serveur.js';
 import { Validator } from './src/Validator.js';
 import { Routeur } from './src/Routeur.js';
-
+import { Baie } from './src/Baie.js';
 
 const app = express();
 const port = 3000;
@@ -11,19 +11,21 @@ const port = 3000;
 app.use(express.json());
 
 // Notre "Base de données" en mémoire
-const parcInformatique = [];
+// const parcInformatique = [];
+
+
 
 // ROUTE 1 : GET (Lecture)
-app.get('/api/equipements', (req, res) => {
+/* app.get('/api/equipements', (req, res) => {
     // On transforme nos objets en un format JSON simple pour l'affichage
     const reponse = parcInformatique.map(eq => ({
         hostname: eq.getHostname(),
         details: eq.afficherStatut()
     }));
     res.json(reponse);
-});
+}); */
 
-app.get('/api/equipements/:index', (req, res) => {
+/* app.get('/api/equipements/:index', (req, res) => {
     // On transforme nos objets en un format JSON simple pour l'affichage
     const indexequipement = parseInt(req.params.index);
     const equipement = parcInformatique[indexequipement]
@@ -41,6 +43,46 @@ app.get('/api/equipements/:index', (req, res) => {
         details: equipement.afficherStatut()
     }
     res.json(resultat);
+});
+*/
+// Ce tableau contiendra désormais des objets de type Baie
+const dataCenter = [];
+
+// On initialise avec une baie par défaut pour faciliter les tests manuels
+dataCenter.push(new Baie("Rack-Principal", 5));
+
+app.post('/api/baies', (req, res) => {
+    // À VOUS DE JOUER
+    // 1. Récupérer nom et capacité du body
+    // 2. Vérifier les données
+    // 3. Instancier la Baie
+    // 4. Ajouter au dataCenter
+    // 5. Renvoyer la réponse JSON
+    try {
+        const { nom, capacite } = req.body;
+
+        // Validation défensive
+        if (!Validator.isNomValid(nom)) {
+            throw new Error(`Le nom ${nom} est invalide !`);
+        }
+
+
+        const nouvelleBaie = new Baie(nom, capacite) ;
+
+
+        dataCenter.push(nouvelleBaie)
+        const idBaie = dataCenter.length +1 ;
+
+
+        res.status(201).json({
+            message: `Nouvelle baie numéro ${idBaie} crée`
+        });
+
+    } catch (error) {
+        // En cas d'erreur, on renvoie une 400 (Bad Request)
+        res.status(400).json({ error: error.message });
+    }
+
 });
 
 app.patch('/api/equipements/:index/unplug', (req, res) => {

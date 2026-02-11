@@ -20,6 +20,11 @@ export class Validator {
         return regex.test(mac);
     }
 
+    static isNomValid (nom) {
+        const regex = /^\w+/
+        return regex.test(nom)
+    }
+
     /**
      * Valide qu'un nombre de ports est compris entre 4 et 48
      * @param {int} nombreDePorts

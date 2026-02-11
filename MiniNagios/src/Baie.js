@@ -5,14 +5,25 @@ export class Baie {
     // En JS, les propriétés peuvent être déclarées ici (champs publics) ou directement dans le constructeur
     // Le '#' devant un nom de variable le rend PRIVE (Encapsulation stricte)
     #nom;
+    #capaciteMaximale;
 
-    constructor(nom) {
+    constructor(nom, capacitemax = 42) {
         this.#nom = nom;
         this.equipements = []
+        this.#capaciteMaximale = capacitemax;
+
+
     }
 
     ajouterEquipement(equipement){
-        this.equipements.push(equipement)
+        if (!this.estPleine())
+            this.equipements.push(equipement)
+        else throw new Error("est pleine");
+    }
+
+    estPleine() {
+        // TODO : Retourner true si le nombre d'équipements atteint la capacité max
+        return this.equipements.length >= this.#capaciteMaximale;
     }
 
     toutAllumer(){

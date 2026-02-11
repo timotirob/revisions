@@ -6,3 +6,5 @@ curl -X POST http://localhost:3000/api/serveurs ^
      curl -X POST http://localhost:3000/api/routeurs -H "Content-Type: application/json" -d "{\"hostname\": \"RT-ROB\", \"ip\": \"192.168.0.2\", \"mac\": \"A1:B2:C3:D4:E5:F6\", \"nbPorts\": 28}"
 
      curl -X PATCH http://localhost:3000/api/equipements/0/plug
+
+          curl -X POST http://localhost:3000/api/baies -H "Content-Type: application/json" -d "{\"nom\": \"RT-ROB\", \"capacite\": 28}"
